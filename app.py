@@ -109,7 +109,7 @@ if sheet is not None:
     st.subheader("Order Details")
 
     # Checkbox for member status
-    member = st.checkbox("Are you a Member?", key="member", value=False if st.session_state.clear_flag else st.session_state.get('member', False))
+    member = st.checkbox("Member", key="member", value=False if st.session_state.clear_flag else st.session_state.get('member', False))
 
     # Input for remark
     remark = st.text_input("Remark", key=f"remark_{st.session_state.remark_key}")
