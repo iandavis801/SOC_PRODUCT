@@ -145,36 +145,40 @@ if sheet is not None:
             else:
                 new_order_id = f"{int(df['Order ID'].max()) + 1:06d}" if not df['Order ID'].empty else "000001"
                 new_rows = []
-    
+        
                 # 使用 NTP 获取当前时间
                 try:
                     client = ntplib.NTPClient()
                     response = client.request('pool.ntp.org', version=3)
-                    purchase_time = datetime.utcfromtimestamp(response.tx_time).strftime("%Y-%m-%d %H:%M:%S")
+                    # 从 NTP 服务器获取时间
+                    purchase_time_utc = datetime.utcfromtimestamp(response.tx_time)
+                    # 调整时区（例如，转换为 UTC+8）
+                    purchase_time = purchase_time_utc + timedelta(hours=8)
+                    purchase_time_str = purchase_time.strftime("%Y-%m-%d %H:%M:%S")
                 except Exception as e:
                     st.warning(f"Could not retrieve the current time from NTP server: {str(e)}")
-                    purchase_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 备用本地时间
-    
+                    purchase_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 备用本地时间
+        
                 for product, amount in st.session_state.quantities.items():
                     if amount > 0:
                         unit_price = price_member[product] if member else price_non_member[product]
                         total_item_price = unit_price * amount
                         # 按照新的顺序排列数据
-                        new_rows.append([new_order_id, product, amount, unit_price, total_item_price, member, remark, purchase_time])
-            
-            # Append new rows to the sheet
-            sheet.append_rows(new_rows)
-
-            # Success message for order submission
-            st.success(f"Order {new_order_id} Submitted Successfully!")
-
-            # 等待1秒以便显示提示
-            time.sleep(2)
-
-            # Reset the state for the next order input
-            st.session_state.clear_flag = True
-            st.session_state.remark_key += 1
-            st.experimental_rerun()
+                        new_rows.append([new_order_id, product, amount, unit_price, total_item_price, member, remark, purchase_time_str])
+                
+                # Append new rows to the sheet
+                sheet.append_rows(new_rows)
+    
+                # Success message for order submission
+                st.success(f"Order {new_order_id} Submitted Successfully!")
+    
+                # 等待1秒以便显示提示
+                time.sleep(2)
+    
+                # Reset the state for the next order input
+                st.session_state.clear_flag = True
+                st.session_state.remark_key += 1
+                st.experimental_rerun()
 
     # Add Clear button
     with button_layout[1]:
