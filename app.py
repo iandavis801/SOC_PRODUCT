@@ -164,7 +164,7 @@ if sheet is not None:
                 # Reset the state for the next order input
                 st.session_state.clear_flag = True
                 st.session_state.remark_key += 1
-                st.experimental_rerun()
+                st.rerun()
 
     # Add Clear button
     with button_layout[1]:
@@ -177,7 +177,7 @@ if sheet is not None:
             # 等待1秒以便顯示提示
             time.sleep(2)
 
-            st.experimental_rerun()
+            st.rerun()
 
     # Reset clear flag back to False after rerun
     if st.session_state.clear_flag:
