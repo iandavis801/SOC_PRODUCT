@@ -3,7 +3,7 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime, timedelta
-import time  # 引入 time 模块
+import time
 
 # 直接在代碼中定義憑證
 credentials_info = {
@@ -50,13 +50,15 @@ if sheet is not None:
     price_member = {
         "Pin(Mic)": 30, "Pin(Piano)": 30, "Pin(Drum)": 30, "Pin(Bass)": 30,
         "Pin(Acoustic guitar)": 30, "Pin(Electric guitar)": 30, "Guitar pick set": 35,
-        "Bag": 50, "Bottle": 60, "Stickers": 20, "Soc T (White)": 65, "Soc T (Black)": 65
+        "Bag": 50, "Bottle": 60, "Stickers": 20, "Soc T (White)": 65, "Soc T (Black)": 65,
+        "Computer Bag (Blue)": 65, "Computer Bag (Black)": 65
     }
 
     price_non_member = {
         "Pin(Mic)": 40, "Pin(Piano)": 40, "Pin(Drum)": 40, "Pin(Bass)": 40,
         "Pin(Acoustic guitar)": 40, "Pin(Electric guitar)": 40, "Guitar pick set": 45,
-        "Bag": 65, "Bottle": 75, "Stickers": 25, "Soc T (White)": 80, "Soc T (Black)": 80
+        "Bag": 65, "Bottle": 75, "Stickers": 25, "Soc T (White)": 80, "Soc T (Black)": 80,
+        "Computer Bag (Blue)": 80, "Computer Bag (Black)": 80
     }
 
     image_urls = {
@@ -70,16 +72,18 @@ if sheet is not None:
         "Bag": "https://i.imgur.com/1GsCIQk.jpeg",
         "Bottle": "https://i.imgur.com/mmS2uQn.jpeg",
         "Stickers": "https://i.imgur.com/IJV4Csx.jpeg",
-        "Soc T (White)": "https://i.imgur.com/PnFMCpu.jpeg",  # Replace with real URL
-        "Soc T (Black)": "https://i.imgur.com/cNIQgB9.jpeg"  # Replace with real URL
+        "Soc T (White)": "https://i.imgur.com/PnFMCpu.jpeg",
+        "Soc T (Black)": "https://i.imgur.com/cNIQgB9.jpeg",
+        "Computer Bag (Blue)": "https://i.imgur.com/ZFgyyUI.png",
+        "Computer Bag (Black)": "https://i.imgur.com/cRsCW9H.png"
     }
 
     # Streamlit app layout
     st.set_page_config(page_title="Music Club", layout="wide", page_icon="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzm6CccDRv29fOOTVnmdWqjXQkX5pki_D_FHoeHkrEEGek43K66hpoySORfTHqILS1DU4&usqp=CAU")
 
-    st.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzm6CccDRv29fOOTVnmdWqjXQkX5pki_D_FHoeHkrEEGek43K66hpoySORfTHqILS1DU4",width=100)
+    st.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzm6CccDRv29fOOTVnmdWqjXQkX5pki_D_FHoeHkrEEGek43K66hpoySORfTHqILS1DU4", width=100)
     st.title("MUSIC CLUB, HKU")
-    st.link_button("Go to sheet", "https://docs.google.com/spreadsheets/d/1QiHaWbAecEk9mykRmAb7AmLgW3qMhjUop5WqQr3fVAo/edit?gid=0#gid=0")
+    st.markdown("[Go to sheet](https://docs.google.com/spreadsheets/d/1QiHaWbAecEk9mykRmAb7AmLgW3qMhjUop5WqQr3fVAo/edit?gid=0#gid=0)")
 
     # Initialize session state
     if 'quantities' not in st.session_state:
@@ -91,10 +95,10 @@ if sheet is not None:
 
     # Container for product selection
     st.subheader("Select Products")
-    cols = st.columns(6)
+    cols = st.columns(7)
 
     for idx, product in enumerate(image_urls.keys()):
-        with cols[idx % 6]:
+        with cols[idx % 7]:
             st.image(image_urls[product], caption=product, use_column_width=True)
             quantity = st.number_input(
                 "Quantity",
@@ -121,14 +125,21 @@ if sheet is not None:
     # Apply rules for discounts and set remark
     if member:
         pins_count = sum(st.session_state.quantities[product] for product in price_member if 'Pin' in product)
-        if pins_count >= 3:  # Rule 1
-            auto_remark = "Combo Set B"
-            total_price -= 15
-        elif st.session_state.quantities["Bag"] >= 1 and pins_count >= 1:  # Rule 2
+        t_shirt_count = st.session_state.quantities["Soc T (White)"] + st.session_state.quantities["Soc T (Black)"]
+        computer_bag_count = st.session_state.quantities["Computer Bag (Blue)"] + st.session_state.quantities["Computer Bag (Black)"]
+        
+        # Check for Combo Set D rule
+        if (t_shirt_count >= 1 and st.session_state.quantities["Bottle"] >= 1 and 
+            st.session_state.quantities["Bag"] >= 1 and computer_bag_count >= 1):
+            auto_remark = "Combo Set D"
+            total_price -= 90
+        elif pins_count >= 3:  # Rule 1
             auto_remark = "Combo Set A"
             total_price -= 15
-        elif st.session_state.quantities["Bag"] >= 1 and \
-                (st.session_state.quantities["Soc T (White)"] >= 1 or st.session_state.quantities["Soc T (Black)"] >= 1):  # Rule 3
+        elif st.session_state.quantities["Bag"] >= 1 and pins_count >= 1:  # Rule 2
+            auto_remark = "Combo Set B"
+            total_price -= 15
+        elif st.session_state.quantities["Bag"] >= 1 and t_shirt_count >= 1:  # Rule 3
             auto_remark = "Combo Set C"
             total_price -= 20
         else:
@@ -163,24 +174,16 @@ if sheet is not None:
             else:
                 new_order_id = f"{int(df['Order ID'].max()) + 1:06d}" if not df['Order ID'].empty else "000001"
                 new_rows = []
-                purchase_time = (datetime.now() + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")  # 獲取當前時間並加上8小時
+                purchase_time = (datetime.now() + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
                 for product, amount in st.session_state.quantities.items():
                     if amount > 0:
                         unit_price = price_member[product] if member else price_non_member[product]
                         total_item_price = unit_price * amount
-                        # 按照新的順序排列數據
                         new_rows.append([new_order_id, product, amount, unit_price, total_item_price, member, remark, purchase_time])
                 
-                # Append new rows to the sheet
                 sheet.append_rows(new_rows)
-
-                # Success message for order submission
                 st.success(f"Order {new_order_id} Submitted Successfully!")
-
-                # 等待1秒以便顯示提示
                 time.sleep(2)
-
-                # Reset the state for the next order input
                 st.session_state.clear_flag = True
                 st.session_state.remark_key += 1
                 st.rerun()
@@ -190,12 +193,8 @@ if sheet is not None:
         if st.button("Clear Inputs"):
             st.session_state.clear_flag = True
             st.session_state.remark_key += 1
-            # Success message for clearing inputs
             st.success("Inputs cleared successfully!")
-
-            # 等待1秒以便顯示提示
             time.sleep(2)
-
             st.rerun()
 
     # Reset clear flag back to False after rerun
@@ -221,7 +220,7 @@ if sheet is not None:
                 last_order = df[df['Order ID'] == last_order_id]
                 for index, row in last_order.iterrows():
                     st.write(f" - {row['Product']}: {row['Amount']} (Price: ${row['Unit Price']})")
-                    st.write(f"   Purchase Time: {row['Purchase Time']}")  # 顯示購買時間
+                    st.write(f"   Purchase Time: {row['Purchase Time']}")
             else:
                 st.warning("No records found.")
 else:
