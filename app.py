@@ -134,10 +134,10 @@ if sheet is not None:
             auto_remark = "Combo Set D"
             total_price -= 90
         elif pins_count >= 3:  # Rule 1
-            auto_remark = "Combo Set A"
+            auto_remark = "Combo Set B"
             total_price -= 15
         elif st.session_state.quantities["Bag"] >= 1 and pins_count >= 1:  # Rule 2
-            auto_remark = "Combo Set B"
+            auto_remark = "Combo Set A"
             total_price -= 15
         elif st.session_state.quantities["Bag"] >= 1 and t_shirt_count >= 1:  # Rule 3
             auto_remark = "Combo Set C"
