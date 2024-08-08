@@ -66,8 +66,8 @@ if sheet is not None:
         "Pin(Bass)": "https://i.ibb.co/xgnM8hQ/3.png",
         "Pin(Acoustic guitar)": "https://i.ibb.co/R6JhLfs/2.png",
         "Pin(Electric guitar)": "https://i.ibb.co/sJcFwf5/6.png",
-        "Guitar pick set": "https://i.ibb.co/86rVFVL/PHOTO-2024-07-29-12-03-21.jpg",
-        "Bag": "https://i.ibb.co/z7VZBgB/231722153290-pic.png",
+        "Guitar pick set": "https://i.imgur.com/XCoTo6z.jpeg",
+        "Bag": "https://i.imgur.com/euKI0sU.jpeg",
         "Bottle": "https://i.ibb.co/tKPMK8x/PHOTO-2024-07-25-17-19-49.jpg",
         "Stickers": "https://i.ibb.co/8cGnwjr/09.png",
         "Soc T (White)": "https://www.carnival.com/_ui/responsive/ccl/assets/images/notfound_placeholder.svg",  # Replace with real URL
