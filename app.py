@@ -83,7 +83,8 @@ if sheet is not None:
 
     st.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzm6CccDRv29fOOTVnmdWqjXQkX5pki_D_FHoeHkrEEGek43K66hpoySORfTHqILS1DU4", width=100)
     st.title("MUSIC CLUB, HKU")
-    st.markdown("[Go to sheet](https://docs.google.com/spreadsheets/d/1QiHaWbAecEk9mykRmAb7AmLgW3qMhjUop5WqQr3fVAo/edit?gid=0#gid=0)")
+    st.text("#一張單只可以有一個Combo Set    #如果要買幾件衫但係唔同碼要分單")
+    st.link_button("Go to sheet", "https://docs.google.com/spreadsheets/d/1QiHaWbAecEk9mykRmAb7AmLgW3qMhjUop5WqQr3fVAo/edit?gid=0#gid=0)")
 
     # Initialize session state
     if 'quantities' not in st.session_state:
@@ -189,7 +190,7 @@ if sheet is not None:
         st.write("No items selected.")
 
     st.write(f"Total Price: **${total_price}**")
-
+    
     # Define button layout
     button_layout = st.columns(4)
 
