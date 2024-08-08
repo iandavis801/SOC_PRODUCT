@@ -85,7 +85,7 @@ if sheet is not None:
 
     st.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzm6CccDRv29fOOTVnmdWqjXQkX5pki_D_FHoeHkrEEGek43K66hpoySORfTHqILS1DU4", width=100)
     st.title("MUSIC CLUB, HKU")
-    st.text("#一張單只可以有一個ComboSet    #如果要買幾件一樣顏色嘅衫但係唔同碼要分單")
+    st.text("#一張單只可以有一個ComboSet")
     st.link_button("Go to sheet", "https://docs.google.com/spreadsheets/d/1QiHaWbAecEk9mykRmAb7AmLgW3qMhjUop5WqQr3fVAo/edit?gid=0#gid=0")
 
     # Initialize session state
