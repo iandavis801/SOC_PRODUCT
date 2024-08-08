@@ -112,8 +112,32 @@ if sheet is not None:
     # Checkbox for member status
     member = st.checkbox("Member", key="member", value=False if st.session_state.clear_flag else st.session_state.get('member', False))
 
-    # Input for remark
-    remark = st.text_input("Remark", key=f"remark_{st.session_state.remark_key}")
+    # Calculate total price without discount
+    total_price = sum(
+        (price_member[product] if member else price_non_member[product]) * st.session_state.quantities[product]
+        for product in st.session_state.quantities if st.session_state.quantities[product] > 0
+    )
+
+    # Apply rules for discounts and set remark
+    if member:
+        pins_count = sum(st.session_state.quantities[product] for product in price_member if 'Pin' in product)
+        if pins_count >= 3:  # Rule 1
+            auto_remark = "Combo Set A"
+            total_price -= 15
+        elif st.session_state.quantities["Bag"] >= 1 and pins_count >= 1:  # Rule 2
+            auto_remark = "Combo Set B"
+            total_price -= 15
+        elif st.session_state.quantities["Bag"] >= 1 and \
+                (st.session_state.quantities["Soc T (White)"] >= 1 or st.session_state.quantities["Soc T (Black)"] >= 1):  # Rule 3
+            auto_remark = "Combo Set C"
+            total_price -= 20
+        else:
+            auto_remark = ""
+    else:
+        auto_remark = ""
+
+    # Display calculated remark, allowing user input but prefilling with the suggested combo remark
+    remark = st.text_input("Remark", value=auto_remark, key=f"remark_{st.session_state.remark_key}")
 
     # Display selected products and quantities
     selected_items = []
@@ -125,12 +149,6 @@ if sheet is not None:
         st.write(", ".join(selected_items))
     else:
         st.write("No items selected.")
-
-    # Calculate total price
-    total_price = sum(
-        (price_member[product] if member else price_non_member[product]) * st.session_state.quantities[product]
-        for product in st.session_state.quantities if st.session_state.quantities[product] > 0
-    )
 
     st.write(f"Total Price: **${total_price}**")
 
