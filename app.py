@@ -50,14 +50,16 @@ if sheet is not None:
     price_member = {
         "Pin(Mic)": 30, "Pin(Piano)": 30, "Pin(Drum)": 30, "Pin(Bass)": 30,
         "Pin(Acoustic guitar)": 30, "Pin(Electric guitar)": 30, "Guitar pick set": 35,
-        "Bag": 50, "Bottle": 60, "Stickers": 20, "Soc T (White)": 65, "Soc T (Black)": 65,
+        "Bag": 50, "Bottle": 60, "Stickers": 20, "Soc T (White)(M)": 65, "Soc T (White)(L)": 65,
+        "Soc T (Black)(M)": 65, "Soc T (Black)(L)": 65,
         "Computer Bag (Blue)": 65, "Computer Bag (Black)": 65
     }
 
     price_non_member = {
         "Pin(Mic)": 40, "Pin(Piano)": 40, "Pin(Drum)": 40, "Pin(Bass)": 40,
         "Pin(Acoustic guitar)": 40, "Pin(Electric guitar)": 40, "Guitar pick set": 45,
-        "Bag": 65, "Bottle": 75, "Stickers": 25, "Soc T (White)": 80, "Soc T (Black)": 80,
+        "Bag": 65, "Bottle": 75, "Stickers": 25, "Soc T (White)(M)": 80, "Soc T (White)(L)": 80,
+        "Soc T (Black)(M)": 80, "Soc T (Black)(L)": 80,
         "Computer Bag (Blue)": 80, "Computer Bag (Black)": 80
     }
 
@@ -84,7 +86,7 @@ if sheet is not None:
     st.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzm6CccDRv29fOOTVnmdWqjXQkX5pki_D_FHoeHkrEEGek43K66hpoySORfTHqILS1DU4", width=100)
     st.title("MUSIC CLUB, HKU")
     st.text("#一張單只可以有一個ComboSet    #如果要買幾件一樣顏色嘅衫但係唔同碼要分單")
-    st.link_button("Go to sheet", "https://docs.google.com/spreadsheets/d/1QiHaWbAecEk9mykRmAb7AmLgW3qMhjUop5WqQr3fVAo/edit?gid=0#gid=0)")
+    st.link_button("Go to sheet", "https://docs.google.com/spreadsheets/d/1QiHaWbAecEk9mykRmAb7AmLgW3qMhjUop5WqQr3fVAo/edit?gid=0#gid=0")
 
     # Initialize session state
     if 'quantities' not in st.session_state:
@@ -95,6 +97,7 @@ if sheet is not None:
         st.session_state.remark_key = 0
 
     # Container for product selection
+    # Container for product selection
     st.subheader("Select Products")
     cols = st.columns(7)
 
@@ -102,36 +105,38 @@ if sheet is not None:
         with cols[idx % 7]:
             st.image(image_urls[product], caption=product, use_column_width=True)
             
-            # 仅为两款衣服创建尺寸选择框和数量输入框
             if product in ["Soc T (White)", "Soc T (Black)"]:
-                col1, col2 = st.columns([1, 1])  # 修改尺寸，使得 col2 更大
+                col1, col2 = st.columns(2)
                 with col1:
-                    quantity = st.number_input(
-                        "Quantity",
+                    quantity_m = st.number_input(
+                        f"Quantity (M)",
                         min_value=0,
                         max_value=100,
                         step=1,
-                        value=0 if st.session_state.clear_flag else st.session_state.quantities[product],
-                        key=f"quantity_{product}"
+                        value=0 if st.session_state.clear_flag else st.session_state.quantities.get(f"{product}(M)", 0),
+                        key=f"quantity_{product}(M)"
                     )
-
                 with col2:
-                    size = st.selectbox("Size", options=["M", "L"], key=f"size_{product}", index=0)
-
-                product_with_size = f"{product} ({size})"
+                    quantity_l = st.number_input(
+                        f"Quantity (L)",
+                        min_value=0,
+                        max_value=100,
+                        step=1,
+                        value=0 if st.session_state.clear_flag else st.session_state.quantities.get(f"{product}(L)", 0),
+                        key=f"quantity_{product}(L)"
+                    )
+                st.session_state.quantities[f"{product}(M)"] = quantity_m
+                st.session_state.quantities[f"{product}(L)"] = quantity_l
             else:
                 quantity = st.number_input(
                     "Quantity",
                     min_value=0,
                     max_value=100,
                     step=1,
-                    value=0 if st.session_state.clear_flag else st.session_state.quantities[product],
+                    value=0 if st.session_state.clear_flag else st.session_state.quantities.get(product, 0),
                     key=f"quantity_{product}"
                 )
-                product_with_size = product
-
-            # 更新数量
-            st.session_state.quantities[product] = quantity
+                st.session_state.quantities[product] = quantity
 
     # Order details section
     st.subheader("Order Details")
@@ -141,28 +146,27 @@ if sheet is not None:
 
     # Calculate total price without discount
     total_price = sum(
-        (price_member[product] if member else price_non_member[product]) * st.session_state.quantities[product]
-        for product in st.session_state.quantities if st.session_state.quantities[product] > 0
+        (price_member[product] if member else price_non_member[product]) * quantity
+        for product, quantity in st.session_state.quantities.items() if quantity > 0
     )
-
+    # Apply rules for discounts and set remark
     # Apply rules for discounts and set remark
     if member:
         pins_count = sum(st.session_state.quantities[product] for product in price_member if 'Pin' in product)
-        t_shirt_count = st.session_state.quantities["Soc T (White)"] + st.session_state.quantities["Soc T (Black)"]
-        computer_bag_count = st.session_state.quantities["Computer Bag (Blue)"] + st.session_state.quantities["Computer Bag (Black)"]
+        t_shirt_count = sum(st.session_state.quantities.get(f"Soc T ({color})({size})", 0) for color in ["White", "Black"] for size in ["M", "L"])
+        computer_bag_count = st.session_state.quantities.get("Computer Bag (Blue)", 0) + st.session_state.quantities.get("Computer Bag (Black)", 0)
         
-        # Check for Combo Set D rule
-        if (t_shirt_count >= 1 and st.session_state.quantities["Bottle"] >= 1 and 
-            st.session_state.quantities["Bag"] >= 1 and computer_bag_count >= 1):
+        if (t_shirt_count >= 1 and st.session_state.quantities.get("Bottle", 0) >= 1 and 
+            st.session_state.quantities.get("Bag", 0) >= 1 and computer_bag_count >= 1):
             auto_remark = "Combo Set D"
             total_price -= 90
-        elif pins_count >= 3:  # Rule 1
+        elif pins_count >= 3:
             auto_remark = "Combo Set B"
             total_price -= 15
-        elif st.session_state.quantities["Bag"] >= 1 and pins_count >= 1:  # Rule 2
+        elif st.session_state.quantities.get("Bag", 0) >= 1 and pins_count >= 1:
             auto_remark = "Combo Set A"
             total_price -= 15
-        elif st.session_state.quantities["Bag"] >= 1 and t_shirt_count >= 1:  # Rule 3
+        elif st.session_state.quantities.get("Bag", 0) >= 1 and t_shirt_count >= 1:
             auto_remark = "Combo Set C"
             total_price -= 20
         else:
@@ -177,12 +181,7 @@ if sheet is not None:
     selected_items = []
     for product, quantity in st.session_state.quantities.items():
         if quantity > 0:
-            if product in ["Soc T (White)", "Soc T (Black)"]:
-                size = st.session_state.get(f'size_{product}', 'M')  # get the size selected
-                product_with_size = f"{product} ({size})"
-            else:
-                product_with_size = product
-            selected_items.append(f"{product_with_size}: {quantity}")
+            selected_items.append(f"{product}: {quantity}")
     if selected_items:
         st.write("You have selected the following items:")
         st.write(", ".join(selected_items))
@@ -190,7 +189,7 @@ if sheet is not None:
         st.write("No items selected.")
 
     st.write(f"Total Price: **${total_price}**")
-    
+
     # Define button layout
     button_layout = st.columns(4)
 
@@ -207,11 +206,7 @@ if sheet is not None:
                     if amount > 0:
                         unit_price = price_member[product] if member else price_non_member[product]
                         total_item_price = unit_price * amount
-                        if product in ["Soc T (White)", "Soc T (Black)"]:
-                            size = st.session_state.get(f'size_{product}', 'M')  # get size for the order
-                            new_rows.append([new_order_id, f"{product} ({size})", amount, unit_price, total_item_price, member, remark, purchase_time])
-                        else:
-                            new_rows.append([new_order_id, product, amount, unit_price, total_item_price, member, remark, purchase_time])
+                        new_rows.append([new_order_id, product, amount, unit_price, total_item_price, member, remark, purchase_time])
                 
                 sheet.append_rows(new_rows)
                 st.success(f"Order {new_order_id} Submitted Successfully!")
@@ -229,7 +224,7 @@ if sheet is not None:
             time.sleep(2)
             st.rerun()
 
-    # Reset clear flag back to False after rerun
+   # Reset clear flag back to False after rerun
     if st.session_state.clear_flag:
         for product in st.session_state.quantities.keys():
             st.session_state.quantities[product] = 0
@@ -255,5 +250,3 @@ if sheet is not None:
                     st.write(f"   Purchase Time: {row['Purchase Time']}")
             else:
                 st.warning("No records found.")
-else:
-    st.warning("Worksheet was not fetched successfully; the application will not proceed.")
