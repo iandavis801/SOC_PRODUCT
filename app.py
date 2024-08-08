@@ -122,10 +122,10 @@ if sheet is not None:
     if member:
         pins_count = sum(st.session_state.quantities[product] for product in price_member if 'Pin' in product)
         if pins_count >= 3:  # Rule 1
-            auto_remark = "Combo Set A"
+            auto_remark = "Combo Set B"
             total_price -= 15
         elif st.session_state.quantities["Bag"] >= 1 and pins_count >= 1:  # Rule 2
-            auto_remark = "Combo Set B"
+            auto_remark = "Combo Set A"
             total_price -= 15
         elif st.session_state.quantities["Bag"] >= 1 and \
                 (st.session_state.quantities["Soc T (White)"] >= 1 or st.session_state.quantities["Soc T (Black)"] >= 1):  # Rule 3
