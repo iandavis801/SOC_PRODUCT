@@ -103,7 +103,7 @@ if sheet is not None:
             
             # 仅为两款衣服创建尺寸选择框和数量输入框
             if product in ["Soc T (White)", "Soc T (Black)"]:
-                col1, col2 = st.columns(2)  # 创建两个均分的列
+                col1, col2 = st.columns([1, 1])  # 修改尺寸，使得 col2 更大
                 with col1:
                     quantity = st.number_input(
                         "Quantity",
@@ -256,4 +256,3 @@ if sheet is not None:
                 st.warning("No records found.")
 else:
     st.warning("Worksheet was not fetched successfully; the application will not proceed.")
-
