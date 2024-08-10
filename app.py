@@ -41,7 +41,7 @@ if sheet is not None:
     values = sheet.get_all_values()
     if not values:
         # 如果工作表為空，則添加標題
-        headers = ['Order ID', 'Product', 'Amount', 'Unit Price', 'Total Price', 'Member', 'Remark', 'Purchase Time']
+        headers = ['Order ID', 'Product', 'Amount', 'Unit Price', 'Total Price', 'Order Price', 'Member', 'Remark', 'Purchase Time']
         sheet.append_row(headers)
         values = [headers]
     df = pd.DataFrame(values[1:], columns=values[0])
@@ -97,7 +97,6 @@ if sheet is not None:
         st.session_state.remark_key = 0
 
     # Container for product selection
-    # Container for product selection
     st.subheader("Select Products")
     cols = st.columns(7)
 
@@ -150,7 +149,6 @@ if sheet is not None:
         for product, quantity in st.session_state.quantities.items() if quantity > 0
     )
     # Apply rules for discounts and set remark
-    # Apply rules for discounts and set remark
     if member:
         pins_count = sum(st.session_state.quantities[product] for product in price_member if 'Pin' in product)
         t_shirt_count = sum(st.session_state.quantities.get(f"Soc T ({color})({size})", 0) for color in ["White", "Black"] for size in ["M", "L"])
@@ -202,12 +200,18 @@ if sheet is not None:
                 new_order_id = f"{int(df['Order ID'].max()) + 1:06d}" if not df['Order ID'].empty else "000001"
                 new_rows = []
                 purchase_time = (datetime.now() + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
+                order_price_logged = False  # Track if order price has been logged
+
                 for product, amount in st.session_state.quantities.items():
                     if amount > 0:
                         unit_price = price_member[product] if member else price_non_member[product]
                         total_item_price = unit_price * amount
-                        new_rows.append([new_order_id, product, amount, unit_price, total_item_price, member, remark, purchase_time])
-                
+                        if not order_price_logged:
+                            new_rows.append([new_order_id, product, amount, unit_price, total_item_price, total_price, member, remark, purchase_time])
+                            order_price_logged = True
+                        else:
+                            new_rows.append([new_order_id, product, amount, unit_price, total_item_price, '', member, remark, purchase_time])  # Leave Order Price empty since it's logged once
+
                 sheet.append_rows(new_rows)
                 st.success(f"Order {new_order_id} Submitted Successfully!")
                 time.sleep(2)
@@ -224,7 +228,7 @@ if sheet is not None:
             time.sleep(2)
             st.rerun()
 
-   # Reset clear flag back to False after rerun
+    # Reset clear flag back to False after rerun
     if st.session_state.clear_flag:
         for product in st.session_state.quantities.keys():
             st.session_state.quantities[product] = 0
