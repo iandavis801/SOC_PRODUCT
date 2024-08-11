@@ -41,7 +41,7 @@ if sheet is not None:
     values = sheet.get_all_values()
     if not values:
         # 如果工作表為空，則添加標題
-        headers = ['Order ID', 'Product', 'Amount', 'Unit Price', 'Total Price', 'Order Price', 'Member', 'Remark', 'Purchase Time']
+        headers = ['Order ID', 'Product', 'Amount', 'Unit Price', 'Total Price', 'Order Price', 'Member', 'Payment Method', 'Remark', 'Purchase Time']
         sheet.append_row(headers)
         values = [headers]
     df = pd.DataFrame(values[1:], columns=values[0])
@@ -143,6 +143,14 @@ if sheet is not None:
     # Checkbox for member status
     member = st.checkbox("Member", key="member", value=False if st.session_state.clear_flag else st.session_state.get('member', False))
 
+    # Radio buttons for payment method
+    payment_method = st.radio(
+        "Select Payment Method",
+        options=["PayMe", "FPS", "Alipay", "Cash"],
+        index=0,  # Default selection
+        key="payment_method"
+    )
+
     # Calculate total price without discount
     total_price = sum(
         (price_member[product] if member else price_non_member[product]) * quantity
@@ -207,10 +215,10 @@ if sheet is not None:
                         unit_price = price_member[product] if member else price_non_member[product]
                         total_item_price = unit_price * amount
                         if not order_price_logged:
-                            new_rows.append([new_order_id, product, amount, unit_price, total_item_price, total_price, member, remark, purchase_time])
+                            new_rows.append([new_order_id, product, amount, unit_price, total_item_price, total_price, member, payment_method, remark, purchase_time])
                             order_price_logged = True
                         else:
-                            new_rows.append([new_order_id, product, amount, unit_price, total_item_price, '', member, remark, purchase_time])  # Leave Order Price empty since it's logged once
+                            new_rows.append([new_order_id, product, amount, unit_price, total_item_price, '', member, payment_method, remark, purchase_time])  # Leave Order Price empty since it's logged once
 
                 sheet.append_rows(new_rows)
                 st.success(f"Order {new_order_id} Submitted Successfully!")
