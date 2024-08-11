@@ -145,7 +145,7 @@ if sheet is not None:
 
     # Radio buttons for payment method
     payment_method = st.radio(
-        "Select Payment Method",
+        "Select Payment Method:",
         options=["PayMe", "FPS", "Alipay", "Cash"],
         index=0,  # Default selection
         key="payment_method"
